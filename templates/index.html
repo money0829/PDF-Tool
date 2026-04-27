@@ -2,139 +2,85 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF Master Pro</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <title>我的 PDF 工具箱</title>
     <style>
-        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); }
-        .drop-zone.dragover { border-color: #3b82f6; background: #eff6ff; transform: scale(1.02); }
-        .loader { border-top-color: #3b82f6; animation: spinner 1.5s linear infinite; }
-        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f4f7f9; display: flex; flex-direction: column; align-items: center; padding: 40px; }
+        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); width: 100%; max-width: 500px; margin-bottom: 20px; }
+        h2 { color: #333; margin-top: 0; border-left: 5px solid #007bff; padding-left: 10px; }
+        input, select, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 6px; border: 1px solid #ddd; box-sizing: border-box; }
+        button { background: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #0056b3; }
+        .status { font-size: 0.9em; color: #666; text-align: center; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center py-12 px-4">
-    <div class="max-w-5xl w-full">
-        <div class="text-center mb-12">
-            <h1 class="text-5xl font-extrabold text-slate-800 tracking-tight mb-3">PDF Tool <span class="text-blue-600">Pro</span></h1>
-            <p class="text-slate-600 text-lg">PDF工具
-            </p>
-        </div>
+<body>
 
-        <div class="grid lg:grid-cols-2 gap-10">
-            <div class="bg-white rounded-3xl shadow-2xl p-8 flex flex-col justify-between transition-all">
-                <div>
-                    <div class="flex items-center mb-6">
-                        <span class="bg-blue-600 text-white p-3 rounded-2xl mr-4 shadow-lg">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
-                        </span>
-                        <h2 class="text-2xl font-bold text-slate-800">智能壓縮</h2>
-                    </div>
-                    <form id="compressForm" class="space-y-6">
-                        <div id="dropZoneComp" class="drop-zone border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center cursor-pointer transition-all">
-                            <input type="file" id="compFile" class="hidden" accept=".pdf">
-                            <label for="compFile" class="cursor-pointer">
-                                <div class="text-slate-400 mb-2">點擊或拖曳檔案至此</div>
-                                <div id="fileNameComp" class="text-blue-600 font-semibold truncate">尚未選擇檔案</div>
-                            </label>
-                        </div>
-                        <select id="targetSize" class="w-full border-slate-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50">
-                            <option value="4">平衡 (4MB)</option>
-                            <option value="5" selected>高品質 (5MB)</option>
-                            <option value="10">極致 (10MB)</option>
-                        </select>
-                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg transition-all active:scale-95">啟動優化</button>
-                    </form>
-                </div>
-                <div id="compMsg" class="mt-4 text-center text-sm font-medium h-6"></div>
-            </div>
+    <div class="container">
+        <h2>1. PDF 壓縮</h2>
+        <form id="compressForm">
+            <input type="file" id="compFile" accept=".pdf" required>
+            <select id="targetSize">
+                <option value="2">壓縮至 2MB 以下</option>
+                <option value="5" selected>壓縮至 5MB 以下</option>
+            </select>
+            <button type="submit">開始優化壓縮</button>
+        </form>
+        <div id="compStatus" class="status">準備就緒</div>
+    </div>
 
-            <div class="bg-white rounded-3xl shadow-2xl p-8 flex flex-col justify-between transition-all">
-                <div>
-                    <div class="flex items-center mb-6">
-                        <span class="bg-emerald-500 text-white p-3 rounded-2xl mr-4 shadow-lg">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                        </span>
-                        <h2 class="text-2xl font-bold text-slate-800">快速合併</h2>
-                    </div>
-                    <form id="mergeForm" class="space-y-6">
-                        <div id="dropZoneMerge" class="drop-zone border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center cursor-pointer transition-all">
-                            <input type="file" id="mergeFiles" class="hidden" accept=".pdf" multiple>
-                            <label for="mergeFiles" class="cursor-pointer">
-                                <div class="text-slate-400 mb-2">選取多個 PDF</div>
-                                <div id="fileNameMerge" class="text-emerald-600 font-semibold italic">已選取 0 個檔案</div>
-                            </label>
-                        </div>
-                        <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 rounded-xl shadow-lg transition-all active:scale-95">合併並下載</button>
-                    </form>
-                </div>
-                <div id="mergeMsg" class="mt-4 text-center text-sm font-medium h-6"></div>
-            </div>
-        </div>
+    <div class="container">
+        <h2>2. PDF 合併</h2>
+        <form id="mergeForm">
+            <input type="file" id="mergeFiles" accept=".pdf" multiple required>
+            <button type="submit" style="background: #28a745;">開始合併檔案</button>
+        </form>
+        <div id="mergeStatus" class="status">可同時選取多個檔案</div>
     </div>
 
     <script>
-        // 更新顯示名稱
-        const fileInputComp = document.getElementById('compFile');
-        const fileInputMerge = document.getElementById('mergeFiles');
+        // 壓縮處理
+        document.getElementById('compressForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const status = document.getElementById('compStatus');
+            const formData = new FormData();
+            formData.append('file', document.getElementById('compFile').files[0]);
+            formData.append('target', document.getElementById('targetSize').value);
 
-        fileInputComp.onchange = () => {
-            if(fileInputComp.files[0]) document.getElementById('fileNameComp').innerText = fileInputComp.files[0].name;
-        };
-        fileInputMerge.onchange = () => {
-            document.getElementById('fileNameMerge').innerText = `已準備好 ${fileInputMerge.files.length} 個檔案`;
-        };
-
-        // 拖曳視覺回饋邏輯
-        const setupDropZone = (zoneId, inputId) => {
-            const zone = document.getElementById(zoneId);
-            const input = document.getElementById(inputId);
-            ['dragenter', 'dragover'].forEach(e => zone.addEventListener(e, () => zone.classList.add('dragover')));
-            ['dragleave', 'drop'].forEach(e => zone.addEventListener(e, () => zone.classList.remove('dragover')));
-            zone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                input.files = e.dataTransfer.files;
-                input.dispatchEvent(new Event('change'));
-            });
-        };
-        setupDropZone('dropZoneComp', 'compFile');
-        setupDropZone('dropZoneMerge', 'mergeFiles');
-
-        // 通用 API 調用
-        const apiCall = async (url, formData, msgId, defaultName) => {
-            const msg = document.getElementById(msgId);
-            msg.innerHTML = '<div class="flex justify-center items-center"><div class="loader rounded-full border-4 border-t-4 border-gray-200 h-5 w-5 mr-3"></div><span class="text-slate-500 animate-pulse">處理中...</span></div>';
-            
-            try {
-                const res = await fetch(url, { method: 'POST', body: formData });
-                if (!res.ok) throw new Error();
+            btn.disabled = true; status.innerText = "處理中，請稍候...";
+            const res = await fetch('/compress', { method: 'POST', body: formData });
+            if(res.ok) {
                 const blob = await res.blob();
-                const a = document.createElement('a');
-                a.href = window.URL.createObjectURL(blob);
-                a.download = defaultName;
-                a.click();
-                msg.innerHTML = '<span class="text-emerald-500 font-bold">✨ 成功下載！</span>';
-            } catch {
-                msg.innerHTML = '<span class="text-red-500 font-bold">⚠️ 處理失敗，請重試</span>';
-            }
+                download(blob, "optimized.pdf");
+                status.innerText = "✅ 壓縮完成！";
+            } else { status.innerText = "❌ 失敗"; }
+            btn.disabled = false;
         };
 
-        document.getElementById('compressForm').onsubmit = e => {
+        // 合併處理
+        document.getElementById('mergeForm').onsubmit = async (e) => {
             e.preventDefault();
-            if(!fileInputComp.files[0]) return alert("請先選擇檔案");
-            const fd = new FormData();
-            fd.append('file', fileInputComp.files[0]);
-            fd.append('target', document.getElementById('targetSize').value);
-            apiCall('/compress', fd, 'compMsg', "optimized_pro.pdf");
+            const btn = e.target.querySelector('button');
+            const status = document.getElementById('mergeStatus');
+            const formData = new FormData();
+            const files = document.getElementById('mergeFiles').files;
+            for(let f of files) formData.append('files', f);
+
+            btn.disabled = true; status.innerText = "合併中...";
+            const res = await fetch('/merge', { method: 'POST', body: formData });
+            if(res.ok) {
+                const blob = await res.blob();
+                download(blob, "merged.pdf");
+                status.innerText = "✅ 合併完成！";
+            } else { status.innerText = "❌ 失敗"; }
+            btn.disabled = false;
         };
 
-        document.getElementById('mergeForm').onsubmit = e => {
-            e.preventDefault();
-            if(fileInputMerge.files.length < 2) return alert("合併至少需要兩個檔案");
-            const fd = new FormData();
-            for (let f of fileInputMerge.files) fd.append('files', f);
-            apiCall('/merge', fd, 'mergeMsg', "merged_pro.pdf");
-        };
+        function download(blob, name) {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = name; a.click();
+        }
     </script>
 </body>
 </html>
